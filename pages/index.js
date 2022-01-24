@@ -51,6 +51,7 @@ function Titulo(props){
                         color : ${appConfig.theme.colors.neutrals['000']};
                         font-size : 24px;
                         font-weight : 600;
+                        margin-bottom: 1rem;
                     }            
                 `}
             </style>
@@ -81,8 +82,8 @@ export default function PaginaInicial() {
           styleSheet={{
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             backgroundColor: appConfig.theme.colors.primary[500],
-            backgroundImage: 'url(https://virtualbackgrounds.site/wp-content/uploads/2020/08/the-matrix-digital-rain.jpg)',
-            backgroundRepeat: 'no-repeat', backgroundSize: 'cover', backgroundBlendMode: 'multiply',
+            backgroundImage: 'url(https://virtualbackgrounds.site/wp-content/uploads/2020/12/amazon-rainforest-1536x864.jpg)',
+            backgroundRepeat: 'no-repeat', backgroundSize: 'cover', /*backgroundBlendMode: 'multiply',*/
           }}
         >
           <Box
@@ -97,7 +98,7 @@ export default function PaginaInicial() {
               width: '100%', maxWidth: '700px',
               borderRadius: '5px', padding: '32px', margin: '16px',
               boxShadow: '0 2px 10px 0 rgb(0 0 0 / 20%)',
-              backgroundColor: appConfig.theme.colors.neutrals[700],
+              backgroundColor: appConfig.theme.colors.primary[400],
             }}
           >
             {/* Formulário */}
@@ -105,11 +106,11 @@ export default function PaginaInicial() {
               as="form"
               styleSheet={{
                 display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                width: { xs: '100%', sm: '50%' }, textAlign: 'center', marginBottom: '32px',
+                width: { xs: '100%', sm: '50%' }, textAlign: 'center', marginBottom: '32px', marginLeft: '1rem'
               }}
             >
-              <Titulo tag="h2">Boas vindas de volta!</Titulo>
-              <Text variant="body3" styleSheet={{ marginBottom: '32px', color: appConfig.theme.colors.neutrals[300] }}>
+              <Titulo tag="h4">Let's talk about the environment !</Titulo>
+              <Text variant="body3" styleSheet={{ marginBottom: '32px', color: appConfig.theme.colors.neutrals['000'] }}>
                 {appConfig.name}
               </Text>
   
@@ -118,10 +119,13 @@ export default function PaginaInicial() {
                 textFieldColors={{
                   neutral: {
                     textColor: appConfig.theme.colors.neutrals[200],
-                    mainColor: appConfig.theme.colors.neutrals[900],
+                    mainColor: appConfig.theme.colors.neutrals[999],
                     mainColorHighlight: appConfig.theme.colors.primary[500],
-                    backgroundColor: appConfig.theme.colors.neutrals[800],
+                    backgroundColor: appConfig.theme.colors.neutrals[300],
                   },
+                  primary: {
+                    backgroundColor: appConfig.theme.colors.primary[400]
+                  }
                 }}
               />
               <Button
@@ -129,10 +133,10 @@ export default function PaginaInicial() {
                 label='Entrar'
                 fullWidth
                 buttonColors={{
-                  contrastColor: appConfig.theme.colors.neutrals["000"],
-                  mainColor: appConfig.theme.colors.primary[500],
-                  mainColorLight: appConfig.theme.colors.primary[400],
-                  mainColorStrong: appConfig.theme.colors.primary[600],
+                  contrastColor: appConfig.theme.colors.neutrals[200],
+                  mainColor: appConfig.theme.colors.neutrals[900],
+                  mainColorLight: appConfig.theme.colors.neutrals[200],
+                  mainColorStrong: appConfig.theme.colors.neutrals[300],
                 }}
               />
             </Box>
@@ -147,7 +151,7 @@ export default function PaginaInicial() {
                 alignItems: 'center',
                 maxWidth: '200px',
                 padding: '16px',
-                backgroundColor: appConfig.theme.colors.neutrals[800],
+                backgroundColor: appConfig.theme.colors.neutrals[300],
                 border: '1px solid',
                 borderColor: appConfig.theme.colors.neutrals[999],
                 borderRadius: '10px',

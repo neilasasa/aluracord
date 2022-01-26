@@ -13,10 +13,11 @@ function Titulo(props){
                 {`
                     ${Tag} 
                     {
-                        color : ${appConfig.theme.colors.neutrals['000']};
+                        color : ${appConfig.theme.colors.neutrals['050']};
                         font-size : 24px;
                         font-weight : 600;
                         margin-bottom: 1rem;
+                        letter-spacing: 3.5px;
                     }            
                 `}
             </style>
@@ -39,24 +40,17 @@ function Titulo(props){
 
 export default function PaginaInicial() {
     // const username = 'neilasasa';
-    const [username, setUsername] = useState('neilasasa');
-    const imgError = 'https://virtualbackgrounds.site/wp-content/uploads/2020/07/this-is-fine.jpeg';
+    const [username, setUsername] = useState('');
+    const imgError = 'https://wallpapercave.com/wp/cvoz2gS.jpg';
     const roteamento = useRouter();
 
-    const [userLocation, setUserLocation] = useState('');
-
-    function handleChange(event){
-      setUsername(event.target.value);
-
-      if(event.target.value.length > 2){
-        fetch(`https://api.github.com/users/${username}`)
-          .then(response => response.json())
-          .then(data => {
-            setUserLocation(data.location);        
-          });
-      }
-    }
-      
+    const [userLocation, setUserLocation] = useState();
+        
+    fetch(`https://api.github.com/users/${username}`)
+      .then(response => response.json())
+      .then(data => {
+        setUserLocation(data.location);        
+      });      
 
     return (
       <>
@@ -81,7 +75,7 @@ export default function PaginaInicial() {
               borderRadius: '5px', padding: '32px', margin: '16px',
               boxShadow: '0 2px 10px 0 rgb(0 0 0 / 20%)',
               backgroundColor: appConfig.theme.colors.primary[400],
-              opacity: .9,
+              opacity: .92,
             }}
           >
             {/* Formulário */}
@@ -98,7 +92,7 @@ export default function PaginaInicial() {
               }}
             >
               <Titulo tag="h4">Let's talk about the environment !</Titulo>
-              <Text variant="body3" styleSheet={{ marginBottom: '32px', color: appConfig.theme.colors.neutrals['000'] }}>
+              <Text variant="body3" styleSheet={{ marginBottom: '32px', color: appConfig.theme.colors.neutrals['050'] }}>
                 {appConfig.name}
               </Text>
   
@@ -116,18 +110,25 @@ export default function PaginaInicial() {
               
               <TextField
                 fullWidth
+                placeholder='Insira seu usuario'
                 value={username}
-                onChange={handleChange}
+                onChange={function (event){
+                  // Onde ta o valor ?
+                  const valor = event.target.value;  
+                  const userLength = valor.length;
+                  // Trocar o valor da variavel atraves do React e avisar quem precisar
+                  setUsername(valor);
+                }}
                 textFieldColors={{
-                  neutral: {
-                    textColor: appConfig.theme.colors.neutrals[200],
-                    mainColor: appConfig.theme.colors.neutrals[999],
+                    textColor: appConfig.theme.colors.primary[200],
+                    mainColor: appConfig.theme.colors.primary[400],
                     mainColorHighlight: appConfig.theme.colors.primary[500],
-                    backgroundColor: appConfig.theme.colors.neutrals[300],
-                  },
-                  primary: {
-                    backgroundColor: appConfig.theme.colors.primary[400]
-                  }
+                    backgroundColor: appConfig.theme.colors.primary[600],                  
+                }}
+                styleSheet={{
+                  padding: '.7rem',
+                  borderColor: appConfig.theme.colors.primary[700],
+                  borderWidth: '1.5px'
                 }}
               />
               <Button
@@ -135,10 +136,13 @@ export default function PaginaInicial() {
                 label='Entrar'
                 fullWidth
                 buttonColors={{
-                  contrastColor: appConfig.theme.colors.neutrals[200],
-                  mainColor: appConfig.theme.colors.neutrals[900],
-                  mainColorLight: appConfig.theme.colors.neutrals[200],
-                  mainColorStrong: appConfig.theme.colors.neutrals[300],
+                  contrastColor: appConfig.theme.colors.primary[200],
+                  mainColor: appConfig.theme.colors.primary[600],
+                  mainColorLight: appConfig.theme.colors.primary[600],
+                  mainColorStrong: appConfig.theme.colors.primary[300],
+                }}
+                styleSheet={{
+                  padding: '.7rem',
                 }}
               />
             </Box>
@@ -153,9 +157,9 @@ export default function PaginaInicial() {
                 alignItems: 'center',
                 maxWidth: '200px',
                 padding: '16px',
-                backgroundColor: appConfig.theme.colors.neutrals[300],
-                border: '1px solid',
-                borderColor: appConfig.theme.colors.neutrals[999],
+                backgroundColor: appConfig.theme.colors.primary[600],
+                border: '2px solid',
+                borderColor: appConfig.theme.colors.primary[700],
                 borderRadius: '10px',
                 flex: 1,
                 minHeight: '240px',
@@ -177,8 +181,8 @@ export default function PaginaInicial() {
               <Text
                 variant="body4"
                 styleSheet={{
-                  color: appConfig.theme.colors.neutrals[200],
-                  backgroundColor: appConfig.theme.colors.neutrals[900],
+                  color: appConfig.theme.colors.primary[200],
+                  backgroundColor: appConfig.theme.colors.primary[700],
                   padding: '3px 10px',
                   borderRadius: '1000px',
                   textAlign: 'center',
@@ -186,18 +190,18 @@ export default function PaginaInicial() {
                 }}
               >
                 {
-                  username.length > 2
-                  ? username
-                  : "Check again your username"
+                  username.length < 2 
+                  ? "Check again your username"
+                  : username
                 }
-
+                
               </Text>
 
               <Text 
                 variant="body4"
                 styleSheet={{
-                  color: appConfig.theme.colors.neutrals[200],
-                  backgroundColor: appConfig.theme.colors.neutrals[900],
+                  color: appConfig.theme.colors.primary[200],
+                  backgroundColor: appConfig.theme.colors.primary[700],
                   padding: '3px 10px',
                   borderRadius: '1000px',
                   textAlign: 'center',

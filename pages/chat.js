@@ -34,21 +34,12 @@ export default function ChatPage() {
         setMensagem('');
     }
 
-    function handleDeleteMensagem(event){
-        const messageId = event.target.dataset.id;
-        const listaMensagensFiltered = listaMensagens.filter((messageFiltered) => {
-            return messageFiltered.id != messageId
-        }) 
-
-        setListaMensagens(listaMensagensFiltered);
-    }
-
     return (
         <Box
             styleSheet={{
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                backgroundImage: `url(https://3l4jojspj4-flywheel.netdna-ssl.com/wp-content/uploads/iStock-921951792.jpg)`,
-                backgroundRepeat: 'no-repeat', backgroundSize: 'cover', backgroundBlendMode: 'multiply',
+                backgroundImage: `url(https://hdwallpaperim.com/wp-content/uploads/2017/09/16/50699-Earth-748x468.jpg)`,
+                backgroundRepeat: 'no-repeat', backgroundSize: 'cover', 
                 color: appConfig.theme.colors.neutrals['000']
             }}
         >
@@ -81,7 +72,7 @@ export default function ChatPage() {
                     }}
                 >
 
-                    <MessageList mensagens={listaMensagens} mensagemDeleted={handleDeleteMensagem} />
+                    <MessageList mensagens={listaMensagens} setMensagens={setListaMensagens} />
 
                     {/* {listaMensagens.map((mensagemAtual) => {
                         return (
@@ -171,8 +162,15 @@ function Header() {
     )
 }
 
-function MessageList(props) {
-    const handleDeleteMensagem = props.handleDeleteMensagem;
+function MessageList(props) {    
+
+    function handleDeleteMensagem(id){
+        const listaMensagensFiltered = props.mensagens.filter(
+            messageFiltered =>  messageFiltered.id !== id
+            ); 
+
+        props.setMensagens(listaMensagensFiltered);
+    }
 
     return (
         <Box
@@ -184,10 +182,11 @@ function MessageList(props) {
                 flex: 1,
                 color: appConfig.theme.colors.neutrals["050"],
                 marginBottom: '1rem',
-            }}
+            }}            
         >
+            
             {props.mensagens.map((mensagemItem) => {
-                
+                console.log(mensagemItem)
                     return (                         
                             <Text
                                 key={mensagemItem.id}
@@ -206,7 +205,8 @@ function MessageList(props) {
                                         display: 'flex',
                                         flexDirection: 'row',
                                         alignItems: 'flex-start',
-                                        justifyContent: 'space-between'
+                                        justifyContent: 'space-between',
+                                        marginBottom: '.5rem',
                                     }}>
                                         <Box
                                             styleSheet={{
@@ -240,17 +240,16 @@ function MessageList(props) {
                                         </Text>
                                         
                                         </Box> 
-                                        <Button 
-                                            onClick={handleDeleteMensagem} 
-                                            type='button'
-                                            iconName='FaTrash'
-                                            buttonColors={{
-                                                contrastColor: appConfig.theme.colors.neutrals[200], //COR DA FONTE
-                                                mainColor: "inherit",
-                                                mainColorStrong: appConfig.theme.colors.neutrals[700],
+                                        <Icon 
+                                            onClick={e => {
+                                                e.preventDefault();
+                                                handleDeleteMensagem(mensagemItem.id);
                                             }}
-                                            data-id={mensagemItem.id}
-                                                                                       
+                                            type='button'
+                                            name='FaTrash'
+                                            styleSheet={{
+                                                color: appConfig.theme.colors.neutrals[200], 
+                                            }}                                                                                       
                                         /> 
                                 </Box>
                                 {mensagemItem.texto}

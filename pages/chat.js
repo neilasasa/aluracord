@@ -98,7 +98,7 @@ export default function ChatPage({SUPABASE_URL, SUPABASE_ANON_KEY}) {
                     padding: '32px',
                 }}
             >
-                <Header />
+                <Header user={username}/>
                 <Box
                     styleSheet={{
                         position: 'relative',
@@ -205,12 +205,12 @@ export default function ChatPage({SUPABASE_URL, SUPABASE_ANON_KEY}) {
     )
 }
 
-function Header() {
+function Header(props) {
     return (
         <>
             <Box styleSheet={{ width: '100%', marginBottom: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }} >
                 <Text variant='heading5'>
-                    Chat
+                    {props.user}
                 </Text>
                 <Button
                     variant='tertiary'
@@ -234,7 +234,7 @@ function MessageList(props) {
         props.supabaseClient
             .from('mensagens')
             .delete()
-            .match({ id: id })        
+            .match({ id: id })     
             .then(() => {
                 props.setMensagens(listaMensagensFiltered);
             })
@@ -313,7 +313,12 @@ function MessageList(props) {
                                         <Icon 
                                             onClick={e => {
                                                 e.preventDefault();
-                                                handleDeleteMensagem(mensagemItem.id);
+                                                if(mensagemItem.de === props.user){
+                                                    handleDeleteMensagem(mensagemItem.id);
+                                                } else {
+                                                    alert("You cannot delete a message from another user !");
+                                                }
+                                                
                                             }}
                                             type='button'
                                             name='FaTrash'

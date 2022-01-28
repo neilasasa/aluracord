@@ -15,6 +15,7 @@ export async function getServerSideProps() {
     };
 };
 
+
 export default function ChatPage({SUPABASE_URL, SUPABASE_ANON_KEY}) {
     /* Sua lógica vai aqui
         USUARIO:

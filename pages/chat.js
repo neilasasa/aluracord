@@ -1,8 +1,21 @@
 import { Box, Text, TextField, Image, Button, Icon } from '@skynexui/components';
-import React from 'react';
+import React, {useState} from 'react';
 import appConfig from '../config.json';
+import { createClient } from '@supabase/supabase-js'
+import { useRouter } from 'next/router';
 
-export default function ChatPage() {
+export async function getServerSideProps() {
+    const { SUPABASE_ANON_KEY, SUPABASE_URL } = process.env;
+
+    return {
+        props:{
+            SUPABASE_ANON_KEY,
+            SUPABASE_URL
+        },
+    };
+};
+
+export default function ChatPage({SUPABASE_URL, SUPABASE_ANON_KEY}) {
     /* Sua lógica vai aqui
         USUARIO:
         - usuario digita no textarea
@@ -16,20 +29,46 @@ export default function ChatPage() {
 
      ./Sua lógica vai aqui */
 
-    const [mensagem, setMensagem] = React.useState('');
-    const [listaMensagens , setListaMensagens] = React.useState([]);
+    const [mensagem, setMensagem] = useState('');
+    const [listaMensagens , setListaMensagens] = useState([]);
+    const roteamento = useRouter();
+    const {username} = roteamento.query;
+
+    const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // useState para o loading
+    const [loading, setLoading] = useState(true)
+
+    // So chama este useEffect na primeira vez que a pagina carrega
+    React.useEffect(() => {
+        supabaseClient
+            .from('mensagens')
+            .select('*')
+            .order('id', { ascending: false })
+            .then(({data}) => {
+                console.log('Dados da consulta : ', data);
+                setListaMensagens(data); 
+                setLoading(false);
+            });
+    }, []);
 
     function handleNovaMensagem(novaMensagem){
         const mensagem = {
-            id: listaMensagens.length + 1,
-            from: 'neilasasa',
+            // id: listaMensagens.length + 1,
+            de: username,
             texto: novaMensagem,            
         };
 
-        setListaMensagens([
-            mensagem,
-            ...listaMensagens,            
-        ]);
+        supabaseClient
+            .from('mensagens')
+            .insert([mensagem]) // Tem que ser um objeto com os mesmos campos que voce escreveu no supabase (base de dados)
+            .then(({ data }) => {
+                console.log('O que ta vindo de resposta ', data);
+                setListaMensagens([
+                    data[0],
+                    ...listaMensagens,            
+                ]);
+            })      
 
         setMensagem('');
     }
@@ -71,13 +110,34 @@ export default function ChatPage() {
                         padding: '16px',
                     }}
                 >
-
-                    <MessageList mensagens={listaMensagens} setMensagens={setListaMensagens} />
+                
+                {/* ADICIONANDO O LOADING DA MENSAGEM */}
+                {loading ? 
+                    <Box
+                        styleSheet={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            height: '80%',
+                            marginBottom: '4rem',
+                        }}
+                    >
+                        <Image 
+                            styleSheet={{
+                              opacity: '.5',                              
+                            }}
+                            src={'https://cliply.co/wp-content/uploads/2021/02/392102850_EARTH_EMOJI_400px.gif'}
+                        />
+                    </Box>
+                    :
+                    <MessageList mensagens={listaMensagens} setMensagens={setListaMensagens} user={username} supabaseClient={supabaseClient} />
+                }
+                    
 
                     {/* {listaMensagens.map((mensagemAtual) => {
                         return (
                             <li key={mensagemAtual.id}> 
-                                {mensagemAtual.from}: {mensagemAtual.texto} 
+                                {mensagemAtual.de}: {mensagemAtual.texto} 
                             </li>
                         )
                     })} */}
@@ -163,13 +223,20 @@ function Header() {
 }
 
 function MessageList(props) {    
+    // const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     function handleDeleteMensagem(id){
         const listaMensagensFiltered = props.mensagens.filter(
             messageFiltered =>  messageFiltered.id !== id
             ); 
 
-        props.setMensagens(listaMensagensFiltered);
+        props.supabaseClient
+            .from('mensagens')
+            .delete()
+            .match({ id: id })        
+            .then(() => {
+                props.setMensagens(listaMensagensFiltered);
+            })
     }
 
     return (
@@ -186,7 +253,6 @@ function MessageList(props) {
         >
             
             {props.mensagens.map((mensagemItem) => {
-                console.log(mensagemItem)
                     return (                         
                             <Text
                                 key={mensagemItem.id}
@@ -223,10 +289,13 @@ function MessageList(props) {
                                                 display: 'inline-block',
                                                 marginRight: '8px',
                                             }}
-                                            src={`https://github.com/${mensagemItem.from}.png`}
+                                            src={`https://github.com/${mensagemItem.de}.png`}
+                                            onSelect={
+                                                console.log('passei o mouse na imagem !')
+                                            }
                                         />
                                         <Text tag="strong">
-                                            {mensagemItem.from}
+                                            {mensagemItem.de}
                                         </Text>
                                         <Text
                                             styleSheet={{

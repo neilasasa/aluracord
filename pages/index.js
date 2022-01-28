@@ -4,7 +4,6 @@ import { useRouter } from 'next/router';
 import appConfig from '../config.json';
 
 function Titulo(props){
-    // console.log(props);
     const Tag = props.tag || 'h1';
     return (
         <>
@@ -45,14 +44,29 @@ export default function PaginaInicial() {
     const roteamento = useRouter();
 
     const [userLocation, setUserLocation] = useState();
-        
+    const [user, setUser] = useState();
+    
+    // TRY TO INCLUDE THE FETCH FOR GITHUB API IN USE EFFECT        
+    // React.useEffect(() => {
+    //   fetch(`https://api.github.com/users/${username}`)
+    //   .then(response => response.json())
+    //   .then((data) => {
+    //     setUserLocation(data.location);    
+    //     //setUser(data);    
+    //     console.log(data);
+    //   });
+      
+    // }, []);
+
     fetch(`https://api.github.com/users/${username}`)
       .then(response => response.json())
-      .then(data => {
-        setUserLocation(data.location);        
-      });      
-
-    return (
+      .then((data) => {
+        setUserLocation(data.location);    
+        //setUser(data);    
+        console.log(data);
+      });
+        
+    return (      
       <>
         <Box
           styleSheet={{
@@ -81,9 +95,9 @@ export default function PaginaInicial() {
             {/* Formulário */}
             <Box
               as="form"
-              onSubmit={function(event){
+              onSubmit={(event) => {
                 event.preventDefault();
-                roteamento.push('/chat');
+                roteamento.push(`/chat?username=${username}`);
                 // window.location.href = '/chat';
               }}
               styleSheet={{
@@ -115,10 +129,14 @@ export default function PaginaInicial() {
                 onChange={function (event){
                   // Onde ta o valor ?
                   const valor = event.target.value;  
-                  const userLength = valor.length;
                   // Trocar o valor da variavel atraves do React e avisar quem precisar
                   setUsername(valor);
                 }}
+                // *** VERIFICAR SE CONSEGUIMOS APAGAR O CAMPO APOS RECARREGAR A PAGINA
+                // onLoad={(event) => {
+                //   console.log("Loaded")
+                //   //setUsername('');
+                // }}
                 textFieldColors={{
                     textColor: appConfig.theme.colors.primary[200],
                     mainColor: appConfig.theme.colors.primary[400],

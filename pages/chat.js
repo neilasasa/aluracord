@@ -3,6 +3,7 @@ import React, {useState} from 'react';
 import appConfig from '../config.json';
 import { createClient } from '@supabase/supabase-js'
 import { useRouter } from 'next/router';
+import { ButtonSendSticker } from '../src/components/ButtonSendSticker';
 
 export async function getServerSideProps() {
     const { SUPABASE_ANON_KEY, SUPABASE_URL } = process.env;
@@ -32,6 +33,7 @@ export default function ChatPage({SUPABASE_URL, SUPABASE_ANON_KEY}) {
 
     const [mensagem, setMensagem] = useState('');
     const [listaMensagens , setListaMensagens] = useState([]);
+
     const roteamento = useRouter();
     const {username} = roteamento.query;
 
@@ -39,6 +41,23 @@ export default function ChatPage({SUPABASE_URL, SUPABASE_ANON_KEY}) {
 
     // useState para o loading
     const [loading, setLoading] = useState(true)
+
+    
+    //Chamaremos somente uma vez
+    function escutaMensagensTempoReal(messageToModify){
+        return supabaseClient
+            .from('mensagens')
+            .on('*', (respostaLive) => {
+                if(respostaLive.eventType === 'INSERT'){
+                    console.log('insert respostaLive: ', respostaLive.new)
+                    messageToModify('INSERT', respostaLive.new);
+                } else if(respostaLive.eventType === 'DELETE'){
+                    console.log('delete respostaLive: ', respostaLive.old)
+                    messageToModify('DELETE', respostaLive.old);
+                }
+            })
+            .subscribe();
+    }
 
     // So chama este useEffect na primeira vez que a pagina carrega
     React.useEffect(() => {
@@ -51,6 +70,24 @@ export default function ChatPage({SUPABASE_URL, SUPABASE_ANON_KEY}) {
                 setListaMensagens(data); 
                 setLoading(false);
             });
+
+        // Quero reusar um valor de referencia (objeto/array)
+        // Passar uma funcao para o setState
+        escutaMensagensTempoReal((eventType, msg) => {
+            if(eventType === 'INSERT'){
+                setListaMensagens((valorAtualDaLista) => { 
+                    return [msg, ...valorAtualDaLista]
+                });
+            } else if(eventType === 'DELETE'){
+                setListaMensagens((valorAtualDaLista) => { 
+                    return (
+                        valorAtualDaLista.filter((msgSelected) => {
+                            return msgSelected.id != msg.id
+                        }))
+                });
+            }
+            
+        });
     }, []);
 
     function handleNovaMensagem(novaMensagem){
@@ -64,12 +101,8 @@ export default function ChatPage({SUPABASE_URL, SUPABASE_ANON_KEY}) {
             .from('mensagens')
             .insert([mensagem]) // Tem que ser um objeto com os mesmos campos que voce escreveu no supabase (base de dados)
             .then(({ data }) => {
-                console.log('O que ta vindo de resposta ', data);
-                setListaMensagens([
-                    data[0],
-                    ...listaMensagens,            
-                ]);
-            })      
+                // console.log('O que ta vindo de resposta ', data);                
+            });      
 
         setMensagem('');
     }
@@ -131,8 +164,13 @@ export default function ChatPage({SUPABASE_URL, SUPABASE_ANON_KEY}) {
                         />
                     </Box>
                     :
-                    <MessageList mensagens={listaMensagens} setMensagens={setListaMensagens} user={username} supabaseClient={supabaseClient} />
-                }
+                    <MessageList 
+                        mensagens={listaMensagens}
+                        setMensagens={setListaMensagens} 
+                        user={username} 
+                        supabaseClient={supabaseClient} 
+                    />
+                } 
                     
 
                     {/* {listaMensagens.map((mensagemAtual) => {
@@ -182,25 +220,45 @@ export default function ChatPage({SUPABASE_URL, SUPABASE_ANON_KEY}) {
                                 color: appConfig.theme.colors.neutrals[200],
                             }}
                         />
-                        <Button
-                            type='submit'
-                            label='Enviar'                            
-                            buttonColors={{
-                            contrastColor: appConfig.theme.colors.neutrals[200], //COR DA FONTE
-                            mainColor: appConfig.theme.colors.neutrals[800],
-                            mainColorStrong: appConfig.theme.colors.neutrals['700'],
-                            }}
+                        <Box
                             styleSheet={{
-                            padding: '.7rem',
-                            height: '4rem',
-                            width: '4rem',
-                            borderRadius: '35px',
-                            backgroundColor: appConfig.theme.colors.neutrals[800]
+                                width: {xs: '550px', lg: '992'},
+                                display: 'flex',
+                                flexDirection: {xs: 'column', lg: 'row'},                       
+                                justifyContent: 'space-around',
+                                alignItems: 'center',
+                                width: '15%',
                             }}
-                        />
+                        >
+                            <Button
+                                type='submit'
+                                iconName='FaAngleDoubleRight'                            
+                                buttonColors={{
+                                contrastColor: appConfig.theme.colors.neutrals[200], //COR DA FONTE
+                                mainColor: appConfig.theme.colors.neutrals[800],
+                                mainColorStrong: appConfig.theme.colors.neutrals['700'],
+                                }}
+                                styleSheet={{
+                                borderRadius: '50%',
+                                padding: '0 3px 0 0',
+                                minWidth: '50px',
+                                minHeight: '50px',
+                                borderRadius: '35px',
+                                backgroundColor: appConfig.theme.colors.neutrals[800]
+                                }}
+                            />
+                            {/* Callback = chamada de retorno, ou seja, quando alguma coisa que vc queria terminou,
+                             ele vai executar a funcao que vc passou */}
+                            <ButtonSendSticker
+                                onStickerClick={(sticker) => {
+                                    // console.log('[USANDO O COMPONENTE] Salva esse sticker no banco de dados')
+                                    handleNovaMensagem(`:sticker: ${sticker}`);
+                                }}
+                            />
+                        </Box>
                     </Box>
-                </Box>
-            </Box>
+                </Box> 
+            </Box>  
         </Box>
     )
 }
@@ -209,9 +267,21 @@ function Header(props) {
     return (
         <>
             <Box styleSheet={{ width: '100%', marginBottom: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }} >
-                <Text variant='heading5'>
-                    {props.user}
-                </Text>
+                <Box styleSheet={{ display: 'flex' , flexDirection: 'row', width: '20%', alignItems: 'center', justifyContent: 'left'}}>
+                    <Image 
+                        src={`https://github.com/${props.user}.png`}
+                        styleSheet={{
+                            width: '30%',
+                        }}
+                    />
+                    <Text 
+                        variant='heading5'
+                        styleSheet={{
+                            marginLeft: '1rem',
+                        }}>
+                            {props.user}                     
+                    </Text>
+                </Box>
                 <Button
                     variant='tertiary'
                     colorVariant='neutral'
@@ -223,9 +293,8 @@ function Header(props) {
     )
 }
 
-function MessageList(props) {    
-    // const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+function MessageList(props) {        
     function handleDeleteMensagem(id){
         const listaMensagensFiltered = props.mensagens.filter(
             messageFiltered =>  messageFiltered.id !== id
@@ -282,52 +351,51 @@ function MessageList(props) {
                                                 alignItems: 'center', 
                                             }}
                                         >
-                                        <Image
-                                            styleSheet={{
-                                                width: '20px',
-                                                height: '20px',
-                                                borderRadius: '50%',
-                                                display: 'inline-block',
-                                                marginRight: '8px',
-                                            }}
-                                            src={`https://github.com/${mensagemItem.de}.png`}
-                                            onSelect={
-                                                console.log('passei o mouse na imagem !')
-                                            }
-                                        />
-                                        <Text tag="strong">
-                                            {mensagemItem.de}
-                                        </Text>
-                                        <Text
-                                            styleSheet={{
-                                                fontSize: '10px',
-                                                marginLeft: '8px',
-                                                color: appConfig.theme.colors.neutrals['050'],
-                                            }}
-                                            tag="span"
-                                        >
-                                            {(new Date().toLocaleDateString())}
-                                        </Text>
-                                        
+                                            <Image
+                                                styleSheet={{
+                                                    width: '20px',
+                                                    height: '20px',
+                                                    borderRadius: '50%',
+                                                    display: 'inline-block',
+                                                    marginRight: '8px',
+                                                }}
+                                                src={`https://github.com/${mensagemItem.de}.png`}                                                
+                                            />
+                                            <Text tag="strong">
+                                                {mensagemItem.de}
+                                            </Text>
+                                            <Text
+                                                styleSheet={{
+                                                    fontSize: '10px',
+                                                    marginLeft: '8px',
+                                                    color: appConfig.theme.colors.neutrals['050'],
+                                                }}
+                                                tag="span"
+                                            >
+                                                {(new Date().toLocaleDateString())}
+                                            </Text>                                        
                                         </Box> 
-                                        <Icon 
+                                        {(mensagemItem.de === props.user) && <Icon 
                                             onClick={e => {
                                                 e.preventDefault();
-                                                if(mensagemItem.de === props.user){
-                                                    handleDeleteMensagem(mensagemItem.id);
-                                                } else {
-                                                    alert("You cannot delete a message from another user !");
-                                                }
-                                                
+                                                handleDeleteMensagem(mensagemItem.id);                                                                                                                                                
                                             }}
                                             type='button'
                                             name='FaTrash'
                                             styleSheet={{
                                                 color: appConfig.theme.colors.neutrals[200], 
                                             }}                                                                                       
-                                        /> 
+                                        /> }
                                 </Box>
-                                {mensagemItem.texto}
+
+                                {
+                                    mensagemItem.texto.startsWith(':sticker:')
+                                    ? <Image src={mensagemItem.texto.replace(':sticker:', '')}
+                                        styleSheet={{
+                                            width: '120px',
+                                        }} />                                    
+                                    : mensagemItem.texto
+                                }                                
                                   
                             </Text>                        
                                              
